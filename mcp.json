@@ -1,10 +1,3 @@
 {
-  "name": "plonky",
-  "version": "1.0.0",
-  "tools": [
-    { "name": "query_conway_state", "description": "Fetches current cellular automaton lattice" },
-    { "name": "execute_x402_settlement", "description": "Executes HTTP 402 micro-settlement" },
-    { "name": "fetch_quicknode_rpc", "description": "Queries QuickNode multi-chain endpoint" },
-    { "name": "evaluate_raven_rsi", "description": "Computes momentum oscillator signal" }
-  ]
+  "mcpServers": {}
 }
