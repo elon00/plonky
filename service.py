@@ -171,8 +171,9 @@ def create_app():
 
 def shutdown_server(server):
     """Close persistent channels as well as the listener, then stop worker threads."""
-    server.close()
-    server.asyncore.close_all(map=server._map)
+    # Schedule socket closure on Waitress's event loop. Closing descriptors from
+    # another thread can race with select() while a keep-alive channel is open.
+    server.trigger.pull_trigger(lambda: server.asyncore.close_all(map=server._map))
     server.task_dispatcher.shutdown()
 
 def main():

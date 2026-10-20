@@ -62,7 +62,7 @@ def main():
         shutdown=time.monotonic();docker("stop","--time","10",cid)
         persistent.close()
         exit_code=int(docker("inspect","--format","{{.State.ExitCode}}",cid))
-        assert exit_code==0,f"Non-graceful shutdown: exit {exit_code}"
+        if exit_code!=0:raise RuntimeError(f"Non-graceful shutdown: exit {exit_code}\n"+docker("logs",cid).replace(token,"[redacted]"))
         result={"status":"passed","access_control":"passed","pqc":"passed","pressure_requests":len(samples),
             "successful":sum(x[0]==200 for x in samples),"busy_responses":sum(x[0]==503 for x in samples),
             "pressure_max_ms":round(max(x[3] for x in samples),2),"shutdown_seconds":round(time.monotonic()-shutdown,2),"exit_code":exit_code}

@@ -1,4 +1,6 @@
 import io
+import http.client
+import threading
 import json
 import os
 from pathlib import Path
@@ -22,6 +24,28 @@ def application(**kwargs):
     return service.Application(service.Settings(("localhost","127.0.0.1"),TOKEN,**kwargs))
 
 class ProductionService(unittest.TestCase):
+    def test_shutdown_closes_persistent_connections(self):
+        from waitress import create_server
+        server=create_server(application(),host="127.0.0.1",port=0)
+        failures=[]
+        def run():
+            try:server.run()
+            except Exception as error:failures.append(error)
+        loop=threading.Thread(target=run,daemon=True);loop.start()
+        connection=http.client.HTTPConnection("127.0.0.1",server.effective_port,timeout=5)
+        try:
+            connection.request("GET","/api/config",headers={"Host":"localhost"})
+            response=connection.getresponse();self.assertEqual(response.status,200);response.read()
+            self.assertIsNotNone(connection.sock)
+            shutdown=threading.Thread(target=service.shutdown_server,args=(server,),daemon=True);shutdown.start()
+            loop.join(5);shutdown.join(6)
+            self.assertFalse(loop.is_alive(),"Waitress event loop did not stop")
+            self.assertFalse(shutdown.is_alive(),"Waitress workers did not stop")
+            self.assertFalse(failures)
+        finally:
+            connection.close();server.close()
+            server.task_dispatcher.shutdown()
+
     def test_configuration_fails_closed(self):
         with patch.dict(os.environ,{},clear=True),self.assertRaises(ValueError):service.Settings.from_env()
         with self.assertRaises(ValueError):service.Settings(("*",),TOKEN).validate()
