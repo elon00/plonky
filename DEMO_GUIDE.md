@@ -2,7 +2,7 @@
 
 ## Prepare
 
-1. Run cargo build --locked and python tests/reality_check_harness.py.
+1. Install test dependencies with python -m pip install --require-hashes -r requirements.txt, then run cargo build --locked and python tests/reality_check_harness.py.
 2. For the contract reference, run npm ci --ignore-scripts and forge test -vv.
 3. Optionally configure your own EVM endpoint in .env and run python app.py rpc. Keep credentials out of screenshots.
 4. Run python app.py serve and open http://127.0.0.1:8765.

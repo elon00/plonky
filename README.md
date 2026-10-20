@@ -30,6 +30,7 @@ Open **http://127.0.0.1:8765**. Click Step, Run key exchange and optionally Prob
 
 ## Verify
 
+    python -m pip install --require-hashes -r requirements.txt
     python tests/reality_check_harness.py
 
 This runs the Rust suite, real CLI and Python API/RPC integration tests. RPC tests use a local mock server, which does not establish live provider connectivity.
