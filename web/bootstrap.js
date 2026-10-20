@@ -24,7 +24,8 @@ try {
  };
  const note=document.querySelector("#rpc").parentElement.querySelector(".footnote");
  note.textContent="Uses a public Sepolia RPC endpoint. Shared-provider limits may apply. No wallet or API key required.";
- const context=document.querySelector(".context");context.firstChild.textContent="";
+ const context=document.querySelector(".context");
+ for(const node of context.childNodes)if(node.nodeType===Node.TEXT_NODE&&node.textContent.includes("LOCAL LAB"))node.textContent=" PUBLIC DEMO ";
  await import("./app.js");
 } catch(error) {
  document.querySelector("#life-status").textContent="Browser core failed to load. Reload on HTTPS or localhost.";

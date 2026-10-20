@@ -32,6 +32,10 @@ def publish_one(repo,owner,publish,expected_origin=None):
     git(repo,"fetch","--quiet","--no-tags","origin","main")
     head=git(repo,"rev-parse","HEAD").stdout.strip();remote=git(repo,"rev-parse","FETCH_HEAD").stdout.strip()
     if head!=remote:
+        unpublished=git(repo,"rev-list",remote+".."+head).stdout.splitlines()
+        if len(unpublished)!=1:raise ValueError("Unexpected unpublished commits; publishing refused")
+        changed=set(git(repo,"diff-tree","--no-commit-id","--name-only","-r",head).stdout.splitlines())
+        if changed-set(fleet.FILES):raise ValueError("Unpublished commit contains unexpected files; publishing refused")
         ancestor=git(repo,"merge-base","--is-ancestor",remote,head,check=False).returncode==0
         title=git(repo,"log","-1","--format=%s").stdout.strip()
         if not ancestor or title!="feat: publish verified QMoosa shared workbench 0.3":
@@ -42,6 +46,9 @@ def publish_one(repo,owner,publish,expected_origin=None):
         changed=set(git(repo,"diff-tree","--no-commit-id","--name-only","-r","HEAD").stdout.splitlines())
         if changed-set(fleet.FILES):raise ValueError("Commit contains unexpected files; push refused")
     commit=git(repo,"rev-parse","HEAD").stdout.strip()
+    for relative,expected in fleet.payloads(repo.name).items():
+        content=subprocess.check_output(["git","-C",str(repo),"show",commit+":"+relative])
+        if content!=expected:raise ValueError("Committed managed files do not match the release; push refused")
     if commit==remote:return {"name":repo.name,"status":"up_to_date","commit":commit}
     error=None
     for attempt in range(3):
@@ -49,14 +56,27 @@ def publish_one(repo,owner,publish,expected_origin=None):
         if result.returncode==0:return {"name":repo.name,"status":"published","commit":commit}
         error=result.stderr[-1200:];time.sleep(attempt+1)
     raise RuntimeError(error or "Push failed")
-def check_proof(path):
+def check_proof(path,canonical=None):
     proof=json.loads(path.read_text(encoding="utf-8"))
     if proof.get("status")!="passed" or not re.fullmatch(r"[0-9a-f]{40}",proof.get("commit","")):
         raise ValueError("Canonical CI proof is invalid")
+    canonical=canonical or SOURCE
+    if git(canonical,"remote","get-url","origin").stdout.strip().removesuffix(".git")!="https://github.com/elon00/plonky":
+        raise ValueError("Expected canonical Plonky repository")
+    if git(canonical,"branch","--show-current").stdout.strip()!="main" or git(canonical,"rev-parse","HEAD").stdout.strip()!=proof["commit"]:
+        raise ValueError("Canonical source HEAD does not match the CI proof")
+    if git(canonical,"status","--porcelain","--",*fleet.FILES).stdout.strip():
+        raise ValueError("Canonical managed source has uncommitted changes")
     run=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}"],text=True))
     if run.get("head_sha")!=proof["commit"] or run.get("conclusion")!="success" or run.get("status")!="completed":
         raise ValueError("Canonical hosted CI has not passed for this commit")
+    if run.get("head_branch")!="main" or run.get("path")!=".github/workflows/ci-cd-pipeline.yml" or run.get("repository",{}).get("full_name")!="elon00/plonky":
+        raise ValueError("Expected the canonical main Verified core workflow")
+    if set(proof["source_manifest"])!=set(fleet.FILES):raise ValueError("Proof does not cover the managed release")
     for relative,expected in proof["source_manifest"].items():
+        committed=subprocess.check_output(["git","-C",str(canonical),"show",proof["commit"]+":"+relative])
+        if hashlib.sha256(committed).hexdigest()!=expected:
+            raise ValueError("Proof manifest does not match the verified Git commit")
         if hashlib.sha256((SOURCE/relative).read_bytes()).hexdigest()!=expected:
             raise ValueError("Source changed after canonical CI proof")
     if set(proof["source_manifest"])!=set(fleet.FILES):raise ValueError("Proof does not cover the managed release")
@@ -65,13 +85,14 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root",type=Path,required=True)
     parser.add_argument("--proof",type=Path,required=True)
+    parser.add_argument("--canonical-repo",type=Path,default=SOURCE)
     parser.add_argument("--report",type=Path,default=SOURCE/"reports/publish.json")
     parser.add_argument("--owner",default="elon00")
     parser.add_argument("--workers",type=int,default=4)
     parser.add_argument("--expected-count",type=int,default=925)
     parser.add_argument("--publish",action="store_true")
     args=parser.parse_args()
-    proof=check_proof(args.proof)
+    proof=check_proof(args.proof,args.canonical_repo)
     repos=fleet.repositories(args.root.resolve())
     if len(repos)!=args.expected_count:parser.error("Repository count mismatch")
     results=[];lock=threading.Lock()

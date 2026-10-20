@@ -116,6 +116,9 @@ class Application:
         return [b"" if method=="HEAD" else body]
     def route(self,environ):
         method=environ.get("REQUEST_METHOD","GET");path=environ.get("PATH_INFO","/")
+        if path in {"/healthz","/readyz"} and method in SAFE_METHODS:
+            ready=path=="/healthz" or self.ready
+            return (200 if ready else 503),{"status":"ok" if ready else "not_ready","version":"0.3.0"},"application/json",[]
         host=environ.get("HTTP_HOST","")
         parsed=urlsplit("//"+host)
         if parsed.username or parsed.password or parsed.path or parsed.hostname not in self.settings.allowed_hosts:
@@ -124,9 +127,6 @@ class Application:
             return 414,{"error":"Request target too long"},"application/json",[]
         if method not in {"GET","HEAD","POST"}:
             return 405,{"error":"Method not allowed"},"application/json",[("Allow","GET, HEAD, POST")]
-        if path in {"/healthz","/readyz"} and method in SAFE_METHODS:
-            ready=path=="/healthz" or self.ready
-            return (200 if ready else 503),{"status":"ok" if ready else "not_ready","version":"0.3.0"},"application/json",[]
         if environ.get("HTTP_SEC_FETCH_SITE")=="cross-site":
             return 403,{"error":"Cross-site request blocked"},"application/json",[]
         origin=environ.get("HTTP_ORIGIN")
@@ -169,6 +169,12 @@ def create_app():
     app.load_env()
     return Application(Settings.from_env())
 
+def shutdown_server(server):
+    """Close persistent channels as well as the listener, then stop worker threads."""
+    server.close()
+    server.asyncore.close_all(map=server._map)
+    server.task_dispatcher.shutdown()
+
 def main():
     from waitress import create_server
     logging.basicConfig(level=logging.INFO,format="%(message)s")
@@ -179,7 +185,7 @@ def main():
         max_request_body_size=1024,clear_untrusted_proxy_headers=True,expose_tracebacks=False)
     def stop(*_):
         application.ready=False
-        threading.Thread(target=server.close,daemon=True).start()
+        threading.Thread(target=shutdown_server,args=(server,),daemon=False).start()
     signal.signal(signal.SIGTERM,stop)
     try:
         LOG.info(json.dumps({"event":"startup","version":"0.3.0","mode":"public_demo" if application.settings.public_demo else "protected"}))

@@ -122,11 +122,11 @@ jobs:
     - run: python -m playwright install --with-deps chromium
     - run: python tools/web_check.py
     - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
-      if: github.repository == 'elon00/plonky' && github.event_name != 'pull_request'
+      if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
       with:
         path: site
-      if: github.repository == 'elon00/plonky' && github.event_name != 'pull_request'
+      if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
       with:
         name: browser-evidence
@@ -140,7 +140,7 @@ jobs:
       contents: read
       pages: read
   deploy:
-    if: github.repository == 'elon00/plonky' && github.event_name != 'pull_request'
+    if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs:
     - core
     - contracts

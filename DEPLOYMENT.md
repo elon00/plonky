@@ -12,11 +12,13 @@ Build locally:
 
     npm ci --ignore-scripts
     python tools/build_web.py --install-tools
+    python -m pip install --require-hashes -r requirements-browser.txt
+    python -m playwright install chromium
     python tools/web_check.py --live-rpc
 
 The build tool derives the exact wasm-bindgen CLI version from Cargo.lock. First-time compilation can take several minutes. requirements-browser.txt hash-locks browser-test packages. The static artifact contains a CSP that permits its own WebAssembly and the explicitly configured public testnet endpoint.
 
-Rollback the public demo by reverting the release commit through a pull request and waiting for the same CI/deploy gates, or by rerunning the last successful deployment workflow against the reviewed release. Record the release SHA and deployed URL.
+Rollback the public demo by reverting the release commit through a pull request and waiting for the same CI/deploy gates, or by preparing a pull request that restores a previously reviewed release. Record the release SHA and deployed URL.
 
 ## Optional protected server
 

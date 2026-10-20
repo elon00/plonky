@@ -33,6 +33,13 @@ class ProductionService(unittest.TestCase):
         self.assertEqual(request(app,"/healthz",token=None)["status"],200)
         app.ready=False
         self.assertEqual(request(app,"/readyz",token=None)["status"],503)
+    def test_health_probe_with_external_host_configuration(self):
+        app=service.Application(service.Settings(("workbench.example",),TOKEN))
+        for method in ("GET","HEAD"):
+            self.assertEqual(request(app,"/readyz",method,token=None,host="127.0.0.1:8080")["status"],200)
+        self.assertEqual(request(app,"/api/health",host="127.0.0.1:8080")["status"],403)
+        app.ready=False
+        self.assertEqual(request(app,"/readyz",token=None)["status"],503)
     def test_auth_and_public_static_config(self):
         app=application()
         for token in (None,"bad"):

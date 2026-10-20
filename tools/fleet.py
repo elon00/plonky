@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -38,7 +39,9 @@ def atomic(path,data):
     path.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=path.parent,delete=False) as file:
         temporary=Path(file.name);file.write(data)
-    try: os.replace(temporary,path)
+    try:
+        os.chmod(temporary,stat.S_IMODE(path.stat().st_mode) if path.exists() else 0o644)
+        os.replace(temporary,path)
     finally:
         if temporary.exists(): temporary.unlink()
 def safe(repo,relative):
@@ -187,17 +190,19 @@ def main():
             if not journal_path.is_file(): continue
             journal=json.loads(journal_path.read_text(encoding="utf-8"))
             if Path(journal["repo"]).resolve()!=repo.resolve(): raise ValueError("Backup repository mismatch")
+            if set(journal["before"])!=set(FILES) or set(journal["after"])!=set(FILES):
+                raise ValueError("Rollback journal must contain exactly the managed files")
             # Verify all targets and backups before changing anything in this repo.
             for relative,old_hash in journal["before"].items():
                 target=safe(repo,relative)
                 current=digest(target.read_bytes()) if target.is_file() else None
                 if current not in (old_hash,journal["after"][relative]): raise ValueError(f"New changes in {target}; rollback refused")
-                if old_hash is not None and digest((backup/repo.name/relative).read_bytes())!=old_hash: raise ValueError("Backup corrupted")
+                if old_hash is not None and digest(safe(backup/repo.name,relative).read_bytes())!=old_hash: raise ValueError("Backup corrupted")
             for relative,old_hash in journal["before"].items():
                 target=safe(repo,relative)
                 if old_hash is None:
                     if target.exists(): target.unlink()
-                else: atomic(target,(backup/repo.name/relative).read_bytes())
+                else: atomic(target,safe(backup/repo.name,relative).read_bytes())
             marker=repo/".qmoosa-release.json"
             if marker.is_file(): marker.unlink()
             results.append({"name":repo.name,"status":"restored"})

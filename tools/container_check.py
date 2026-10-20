@@ -3,6 +3,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import json
+import http.client
 import os
 from pathlib import Path
 import re
@@ -21,12 +22,13 @@ def main():
     try:
         cid=docker("run","-d","--label","qmoosa.test-run="+run,"--read-only","--tmpfs","/tmp:size=16m,noexec,nosuid",
             "--cap-drop","ALL","--security-opt","no-new-privileges","--memory","256m","--cpus","1","--pids-limit","64",
-            "-p","127.0.0.1::8080","-e","QMOOSA_ACCESS_TOKEN","-e","QMOOSA_ALLOWED_HOSTS=localhost,127.0.0.1",
+            "-p","127.0.0.1::8080","-e","QMOOSA_ACCESS_TOKEN","-e","QMOOSA_ALLOWED_HOSTS=workbench.test",
             "-e","QMOOSA_RATE_LIMIT=500","-e","QMOOSA_GLOBAL_RATE_LIMIT=1000",args.image,env=env)
         if not re.fullmatch(r"[0-9a-f]{64}",cid):raise RuntimeError("Unexpected container identifier")
         address=docker("port",cid,"8080/tcp").splitlines()[0];base="http://"+address
         def get(path,auth=True):
-            started=time.monotonic();headers={"Authorization":"Bearer "+token} if auth else {}
+            started=time.monotonic();headers={"Host":"workbench.test"}
+            if auth:headers["Authorization"]="Bearer "+token
             try:
                 with urlopen(Request(base+path,headers=headers),timeout=20) as reply:
                     return reply.status,reply.read(),dict(reply.headers),(time.monotonic()-started)*1000
@@ -49,7 +51,16 @@ def main():
         assert all(row[0] in (200,503) for row in samples)
         assert any(row[0]==200 for row in samples)
         assert get("/readyz",False)[0]==200
+        for _ in range(120):
+            if docker("inspect","--format","{{.State.Health.Status}}",cid)=="healthy":break
+            time.sleep(.25)
+        else:raise RuntimeError("Docker localhost health probe failed")
+        persistent=http.client.HTTPConnection(address,timeout=15)
+        persistent.request("GET","/api/health",headers={"Host":"workbench.test","Authorization":"Bearer "+token})
+        reply=persistent.getresponse();assert reply.status==200;reply.read()
+        assert persistent.sock is not None,"Test must leave a persistent channel open"
         shutdown=time.monotonic();docker("stop","--time","10",cid)
+        persistent.close()
         exit_code=int(docker("inspect","--format","{{.State.ExitCode}}",cid))
         assert exit_code==0,f"Non-graceful shutdown: exit {exit_code}"
         result={"status":"passed","access_control":"passed","pqc":"passed","pressure_requests":len(samples),

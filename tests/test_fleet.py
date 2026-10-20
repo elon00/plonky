@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import os
+import stat
 from pathlib import Path
 import tempfile
 import unittest
@@ -50,4 +52,29 @@ class FleetSafety(unittest.TestCase):
             with patch("sys.argv",["fleet.py","rollback","--root",str(root),"--expected-count","1","--backup-root",str(backup)]):
                 with self.assertRaisesRegex(ValueError,"New changes"):fleet.main()
             self.assertEqual((repo/"app.py").read_text(),"new user edit")
+
+    def test_rollback_rejects_unmanaged_journal_entries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home=Path(temporary);root=home/"repos";repo=root/"example";repo.mkdir(parents=True);(repo/".git").mkdir()
+            (repo/"notes.txt").write_text("user work")
+            snapshot=fleet.inventory(root)["repositories"][0];backup=home/"backup";backup.mkdir()
+            fleet.apply_one(repo,snapshot,backup)
+            journal_path=backup/"example"/"RESTORE.json"
+            journal=json.loads(journal_path.read_text(encoding="utf-8"))
+            journal["before"]["notes.txt"]=None
+            journal["after"]["notes.txt"]=fleet.digest(b"user work")
+            journal_path.write_text(json.dumps(journal),encoding="utf-8")
+            with patch("sys.argv",["fleet.py","rollback","--root",str(root),"--expected-count","1","--backup-root",str(backup)]):
+                with self.assertRaisesRegex(ValueError,"exactly the managed files"):fleet.main()
+            self.assertEqual((repo/"notes.txt").read_text(),"user work")
+
+    @unittest.skipIf(os.name=="nt","POSIX file permissions")
+    def test_atomic_write_preserves_permissions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path=Path(temporary)/"managed.txt"
+            fleet.atomic(path,b"new")
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o644)
+            path.chmod(0o640);fleet.atomic(path,b"update")
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o640)
 if __name__=="__main__":unittest.main()
+
