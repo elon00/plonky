@@ -1,0 +1,42 @@
+{
+  "actions/checkout": {
+    "tag": "v7",
+    "sha": "3d3c42e5aac5ba805825da76410c181273ba90b1"
+  },
+  "actions/setup-python": {
+    "tag": "v7",
+    "sha": "5fda3b95a4ea91299a34e894583c3862153e4b97"
+  },
+  "actions/setup-node": {
+    "tag": "v7",
+    "sha": "949feb2413d6458794dcd2491c4babbbce0c15c1"
+  },
+  "dtolnay/rust-toolchain": {
+    "tag": "stable",
+    "sha": "b725eda525362e7cf34af9a7243cac1e3f01a7ec"
+  },
+  "foundry-rs/foundry-toolchain": {
+    "tag": "v1",
+    "sha": "908c540300062bd5a7e473851cdb4282204cee09"
+  },
+  "github/codeql-action": {
+    "tag": "v4",
+    "sha": "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"
+  },
+  "actions/configure-pages": {
+    "tag": "v5",
+    "sha": "983d7736d9b0ae728b81ab479565c72886d7745b"
+  },
+  "actions/upload-pages-artifact": {
+    "tag": "v4",
+    "sha": "7b1f4a764d45c48632c6b24a0339c27f5614fb0b"
+  },
+  "actions/deploy-pages": {
+    "tag": "v4",
+    "sha": "d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"
+  },
+  "actions/upload-artifact": {
+    "tag": "v6",
+    "sha": "b7c566a772e6b6bfb58ed0dc250532a479d7789f"
+  }
+}

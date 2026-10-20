@@ -1,0 +1,6 @@
+{
+  "name": "plonky",
+  "core_version": "0.3.0",
+  "description": "A verifiable Conway and post-quantum cryptography workbench",
+  "readiness": "deployable workbench; independent review and event acceptance remain"
+}

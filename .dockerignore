@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+.runtime
+__pycache__
+node_modules
+target
+out
+cache
+reports
+*.log
+*.zip

@@ -1,15 +1,161 @@
-name: CI/CD Pipeline
-on: [push, pull_request]
+name: Verified core
+'on':
+  push:
+    branches:
+    - main
+  pull_request: null
+  workflow_dispatch: null
+permissions:
+  contents: read
+env:
+  CARGO_BUILD_JOBS: '2'
+concurrency:
+  group: core-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  core:
+    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
+      || vars.QMOOSA_ENABLE_CI == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Smoke Tests
-        run: python tests/reality_check_harness.py
-      - name: CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+      with:
+        node-version: '24'
+        package-manager-cache: false
+    - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+      with:
+        toolchain: stable
+        components: rustfmt,clippy
+    - run: python -m pip install --require-hashes -r requirements.txt
+    - run: cargo fmt --all -- --check
+    - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+    - run: python tests/reality_check_harness.py
+    - run: node --check web/app.js
+    - run: npm ci --ignore-scripts
+    - run: npm test
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        - windows-latest
+  contracts:
+    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
+      || vars.QMOOSA_ENABLE_CI == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+      with:
+        node-version: '24'
+        package-manager-cache: false
+    - uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09
+      with:
+        version: v1.8.5
+    - run: npm ci --ignore-scripts
+    - run: forge test -vv
+  security:
+    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
+      || vars.QMOOSA_ENABLE_CI == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - run: python tools/dependency_audit.py
+    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+      with:
+        name: dependency-audit
+        path: reports/dependency-audit.json
+      if: always()
+  container:
+    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
+      || vars.QMOOSA_ENABLE_CI == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - run: docker build -t qmoosa:ci .
+    - run: python tools/container_check.py --image qmoosa:ci
+  web:
+    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
+      || vars.QMOOSA_ENABLE_CI == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+      with:
+        node-version: '24'
+        package-manager-cache: false
+    - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+      with:
+        toolchain: stable
+        components: rustfmt,clippy
+    - run: npm ci --ignore-scripts
+    - run: python tools/build_web.py --install-tools
+    - run: python -m pip install --require-hashes -r requirements-browser.txt
+    - run: python -m playwright install --with-deps chromium
+    - run: python tools/web_check.py
+    - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
+      if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+      with:
+        path: site
+      if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+      with:
+        name: browser-evidence
+        path: 'reports/wasm-browser.json
+
+          reports/wasm-desktop.png
+
+          reports/wasm-mobile.png'
+      if: always()
+    permissions:
+      contents: read
+      pages: read
+  deploy:
+    if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs:
+    - core
+    - contracts
+    - security
+    - container
+    - web
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+      id: deployment
+      name: Publish verified browser demo
