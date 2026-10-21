@@ -34,7 +34,6 @@ FILES.extend(['service.py', 'Dockerfile', '.dockerignore', '.gitattributes', 'de
 
 FILES.extend(['tools/release_gate.py', 'tests/test_release_gate.py', 'tools/codeql_gate.py', 'tests/test_codeql_gate.py', 'LOCAL_DEVELOPMENT.md', 'CI_POLICY.md'])
 
-FILES.extend(['tools/security_guard.py', 'tools/security-policy.toml', 'tools/reviewed-test-fixtures.json', 'ci/test_security_guard.py'])
 
 def digest(data): return hashlib.sha256(data).hexdigest()
 def write_json(path,data):

@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("release_gate", ROOT / "tools/release_gate.py")
@@ -40,7 +41,7 @@ class ReleaseGateTests(unittest.TestCase):
         self.assertFalse(gate.evaluate(needs))
 
     def test_command_returns_nonzero_and_writes_failure_for_invalid_metadata(self):
-        for metadata in ("", "{", "x" * 65537, json.dumps({"core": {"result": "success"}})):
+        for metadata in ("", "{", json.dumps({"core": {"result": "success"}})):
             with self.subTest(length=len(metadata)), tempfile.TemporaryDirectory() as temp:
                 report = Path(temp) / "gate.json"
                 env = dict(os.environ, NEEDS_JSON=metadata)
@@ -48,6 +49,18 @@ class ReleaseGateTests(unittest.TestCase):
                                          "--report", str(report)], env=env, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 1)
                 self.assertEqual(json.loads(report.read_text())["status"], "failed")
+
+
+
+
+class OversizedGateMetadata(unittest.TestCase):
+    def test_oversized_metadata_fails_without_platform_environment_limits(self):
+        with tempfile.TemporaryDirectory() as temp:
+            report = Path(temp) / "gate.json"
+            with patch.object(gate.os, "environ", {"NEEDS_JSON": "x" * 65537}), patch.object(
+                    sys, "argv", ["release_gate.py", "--report", str(report)]):
+                self.assertEqual(gate.main(), 1)
+            self.assertEqual(json.loads(report.read_text())["status"], "failed")
 
 
 if __name__ == "__main__":

@@ -73,12 +73,12 @@ def check_proof(path,canonical=None):
         raise ValueError("Canonical source HEAD does not match the CI proof")
     if git(canonical,"status","--porcelain","--",*fleet.FILES).stdout.strip():
         raise ValueError("Canonical managed source has uncommitted changes")
-    run=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}"],text=True))
+    run=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}"],text=True,timeout=90))
     if run.get("head_sha")!=proof["commit"] or run.get("conclusion")!="success" or run.get("status")!="completed":
         raise ValueError("Canonical hosted CI has not passed for this commit")
     if run.get("head_branch")!="main" or run.get("path")!=".github/workflows/ci-cd-pipeline.yml" or run.get("repository",{}).get("full_name")!="elon00/plonky":
         raise ValueError("Expected the canonical main Verified core workflow")
-    jobs=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}/jobs?per_page=100&filter=latest"],text=True))
+    jobs=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}/jobs?per_page=100&filter=latest"],text=True,timeout=90))
     rows=jobs.get("jobs")
     if not isinstance(rows,list) or jobs.get("total_count")!=len(rows) or len(rows)!=len(REQUIRED_CI_JOBS):
         raise ValueError("Canonical mandatory job evidence is incomplete")

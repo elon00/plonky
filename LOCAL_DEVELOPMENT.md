@@ -32,7 +32,7 @@ Open [http://127.0.0.1:8766/](http://127.0.0.1:8766/). Use another free port if 
 
 ## Check and stop
 
-[Local health response](http://127.0.0.1:8765/api/health) reports the running project and configuration. Readiness claims still require the real verification commands:
+Use the selected port in http://127.0.0.1:PORT/api/health: [8765 health](http://127.0.0.1:8765/api/health), or [8766 health](http://127.0.0.1:8766/api/health) for the second example. Replace PORT when choosing another port. The response reports the running project and configuration. Readiness claims still require the real verification commands:
 
 ```text
 python -m pip install --require-hashes -r requirements.txt

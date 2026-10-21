@@ -133,19 +133,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+    - name: Check out immutable scanner and policy outside the target repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with:
+        repository: elon00/qmoosa-1000
+        ref: 9900daea33de9c723f7b3d89d09363e90e8bb84b
+        path: trusted-security
+        persist-credentials: false
+    - name: Check out complete target history separately
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        path: project
         fetch-depth: 0
         persist-credentials: false
     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
       with:
         python-version: '3.12'
     - name: Install checksum-pinned credential scanner
-      run: python tools/security_guard.py install
-    - name: Verify scanner protections and exact-fixture boundaries
-      run: python -m unittest discover -s ci -p test_security_guard.py -v
-    - name: Scan available history, merge diffs and commit/tag messages
-      run: python tools/security_guard.py scan --repo . --report reports/credential-scan.json
+      run: python trusted-security/tools/security_guard.py install
+    - name: Verify trusted scanner protections and exact-fixture boundaries
+      run: python -m unittest discover -s trusted-security/tests -p test_security_guard.py -v
+    - name: Scan target history, merge diffs and commit/tag messages
+      run: python trusted-security/tools/security_guard.py scan --repo project --report reports/credential-scan.json
     - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
       if: always()
       with:
