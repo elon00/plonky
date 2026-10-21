@@ -7,7 +7,7 @@ from pathlib import Path
 EXPECTED_LANGUAGES = frozenset(("python", "javascript"))
 
 
-def inspect(folder):
+def inspect(folder, expected_languages=EXPECTED_LANGUAGES):
     languages = set()
     blocking = 0
     for path in sorted(folder.glob("*.sarif")):
@@ -54,17 +54,21 @@ def inspect(folder):
                 # Existing findings and SARIF suppressions do not bypass this release policy.
                 if score >= 7 or level == "error":
                     blocking += 1
-    if languages != EXPECTED_LANGUAGES:
-        raise ValueError("Both Python and JavaScript analysis are required")
+                    print("Blocking CodeQL rule: " + str(result.get("ruleId", ""))[:160])
+    if languages != expected_languages:
+        raise ValueError("All configured language analyses are required")
     return blocking
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--directory", type=Path, default=Path("reports/codeql"))
+    parser.add_argument("--languages", nargs="+", choices=("python", "javascript-typescript"),
+                        default=("python", "javascript-typescript"))
     args = parser.parse_args()
     try:
-        count = inspect(args.directory)
+        expected = frozenset(value.replace("-typescript", "") for value in args.languages)
+        count = inspect(args.directory, expected)
     except (OSError, ValueError, TypeError, KeyError):
         print("CodeQL gate failed: incomplete or invalid analysis evidence")
         return 1

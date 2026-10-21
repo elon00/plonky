@@ -34,6 +34,15 @@ class CodeQLGateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 gate.inspect(folder)
 
+    def test_a_matrix_job_requires_its_own_named_language(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            self.documents(folder, finding=False)
+            (folder / "javascript.sarif").unlink()
+            self.assertEqual(gate.inspect(folder, frozenset(("python",))), 0)
+            with self.assertRaises(ValueError):
+                gate.inspect(folder, frozenset(("javascript",)))
+
     def test_high_critical_and_error_findings_block_even_with_suppressions(self):
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp)
