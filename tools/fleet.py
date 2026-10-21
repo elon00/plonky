@@ -45,7 +45,10 @@ def atomic(path,data):
     with tempfile.NamedTemporaryFile(dir=path.parent,delete=False) as file:
         temporary=Path(file.name);file.write(data)
     try:
-        os.chmod(temporary,stat.S_IMODE(path.stat().st_mode) if path.exists() else 0o644)
+        # Source replacements, journals and backups may contain local user edits.
+        # Keep them private; retain only the owner's executable flag when present.
+        mode=0o700 if path.exists() and path.stat().st_mode & stat.S_IXUSR else 0o600
+        os.chmod(temporary,mode)
         os.replace(temporary,path)
     finally:
         if temporary.exists(): temporary.unlink()
@@ -100,7 +103,7 @@ def apply_one(repo,snapshot,backup):
         target=safe(repo,relative)
         old=target.read_bytes() if target.is_file() else None
         if old is not None:
-            old_path=backup/repo.name/relative;old_path.parent.mkdir(parents=True,exist_ok=True);old_path.write_bytes(old)
+            old_path=backup/repo.name/relative;old_path.parent.mkdir(parents=True,exist_ok=True);atomic(old_path,old)
         before[relative]=digest(old) if old is not None else None
         after[relative]=digest(raw)
     # Journal exists before mutation, allowing recovery after an interrupted write.
@@ -155,7 +158,7 @@ def main():
         if snapshot["instructions"]: parser.error("Review listed AGENTS.md instructions before adapting this updater")
         backup=args.backup_root.resolve()/datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         if backup.is_relative_to(root): parser.error("Use a backup directory outside the repository fleet")
-        backup.mkdir(parents=True,exist_ok=False)
+        backup.mkdir(parents=True,exist_ok=False,mode=0o700)
         snapshots={row["name"]:row for row in snapshot["repositories"]}
         results=[]
         for index,repo in enumerate(repos,1):

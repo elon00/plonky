@@ -68,13 +68,24 @@ class FleetSafety(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,"exactly the managed files"):fleet.main()
             self.assertEqual((repo/"notes.txt").read_text(),"user work")
 
+    def test_atomic_requests_owner_only_permissions_on_every_platform(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path=Path(temporary)/"managed.txt"
+            chmod=os.chmod
+            with patch.object(fleet.os,"chmod",wraps=chmod) as called:
+                fleet.atomic(path,b"new")
+                self.assertEqual(called.call_args.args[1],0o600)
+            self.assertEqual(path.read_bytes(),b"new")
+
     @unittest.skipIf(os.name=="nt","POSIX file permissions")
-    def test_atomic_write_preserves_permissions(self):
+    def test_atomic_writes_are_private_and_keep_owner_execute(self):
         with tempfile.TemporaryDirectory() as temporary:
             path=Path(temporary)/"managed.txt"
             fleet.atomic(path,b"new")
-            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o644)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o600)
             path.chmod(0o640);fleet.atomic(path,b"update")
-            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o640)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o600)
+            path.chmod(0o700);fleet.atomic(path,b"executable")
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode),0o700)
 if __name__=="__main__":unittest.main()
 

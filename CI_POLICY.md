@@ -23,3 +23,5 @@ Branch protection must separately require this gate on main before describing me
 The scanner policy records only exact reviewed non-secret fixtures and rejects changed content; repository-provided ignores do not suppress findings. It does not prove the absence of all confidential information on GitHub. CodeQL language coverage is limited to the configured languages; Rust uses compiler/Clippy/tests, and Solidity uses contract/fuzz tests. Independent security review, customer acceptance, licenses, real deployment/rollback evidence and monitoring remain separate requirements. No CI success awards 10/10 market readiness.
 
 The credential guard and its regression tests were imported from master security commit 9900daea33de9c723f7b3d89d09363e90e8bb84b. Reviewed fixture records name their actual source repository; they are exact-content exceptions rather than general path exclusions.
+
+Fleet replacements and backup files use owner-only POSIX access (0600, or 0700 when preserving owner execute). Timestamped backup roots are created with 0700. Windows chmod does not configure NTFS access-control lists; retain an appropriately protected user/workspace directory there.
