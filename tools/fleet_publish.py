@@ -16,7 +16,8 @@ SOURCE=Path(__file__).resolve().parents[1]
 
 REQUIRED_CI_JOBS=frozenset((
     "core (ubuntu-latest)", "core (windows-latest)", "contracts", "security",
-    "credentials", "container", "web", "codeql / analyze (python)", "codeql / analyze (javascript-typescript)", "Required release gate", "deploy",
+    "credentials", "container", "web", "codeql / analyze (python)", "codeql / analyze (javascript-typescript)",
+    "codeql / analyze (rust)", "codeql / analyze (actions)", "Required release gate", "deploy",
 ))
 def git(repo,*args,check=True):
     result=subprocess.run(["git","-C",str(repo),*args],capture_output=True,text=True,timeout=120)

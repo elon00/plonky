@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 
 EXPECTED_LANGUAGES = frozenset(("python", "javascript"))
+SUPPORTED_LANGUAGES = EXPECTED_LANGUAGES | frozenset(("rust", "actions"))
 
 
 def inspect(folder, expected_languages=EXPECTED_LANGUAGES):
@@ -30,9 +31,13 @@ def inspect(folder, expected_languages=EXPECTED_LANGUAGES):
                 languages.add("python")
             elif "javascript" in language:
                 languages.add("javascript")
+            elif "rust" in language:
+                languages.add("rust")
+            elif "actions" in language:
+                languages.add("actions")
             else:
                 # CodeQL emits language-named files when no category is supplied.
-                if path.stem in EXPECTED_LANGUAGES:
+                if path.stem in SUPPORTED_LANGUAGES:
                     languages.add(path.stem)
                 else:
                     raise ValueError("Unidentified CodeQL language")
@@ -63,7 +68,7 @@ def inspect(folder, expected_languages=EXPECTED_LANGUAGES):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--directory", type=Path, default=Path("reports/codeql"))
-    parser.add_argument("--languages", nargs="+", choices=("python", "javascript-typescript"),
+    parser.add_argument("--languages", nargs="+", choices=("python", "javascript-typescript", "rust", "actions"),
                         default=("python", "javascript-typescript"))
     args = parser.parse_args()
     try:

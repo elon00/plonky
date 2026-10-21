@@ -11,8 +11,8 @@ SPEC.loader.exec_module(gate)
 
 
 class CodeQLGateTests(unittest.TestCase):
-    def documents(self, folder, *, severity="8.0", level="warning", finding=True):
-        for language in ("python", "javascript"):
+    def documents(self, folder, *, severity="8.0", level="warning", finding=True, languages=("python", "javascript")):
+        for language in languages:
             document = {"version": "2.1.0", "runs": [{
                 "tool": {"driver": {"name": "CodeQL", "rules": [{
                     "id": "example-rule", "properties": {"security-severity": severity},
@@ -42,6 +42,15 @@ class CodeQLGateTests(unittest.TestCase):
             self.assertEqual(gate.inspect(folder, frozenset(("python",))), 0)
             with self.assertRaises(ValueError):
                 gate.inspect(folder, frozenset(("javascript",)))
+
+    def test_rust_and_actions_matrix_outputs_are_checked(self):
+        for language in ("rust", "actions"):
+            with self.subTest(language=language), tempfile.TemporaryDirectory() as temp:
+                folder = Path(temp)
+                self.documents(folder, finding=False, languages=(language,))
+                self.assertEqual(gate.inspect(folder, frozenset((language,))), 0)
+                self.documents(folder, severity="9.0", languages=(language,))
+                self.assertEqual(gate.inspect(folder, frozenset((language,))), 1)
 
     def test_high_critical_and_error_findings_block_even_with_suppressions(self):
         with tempfile.TemporaryDirectory() as temp:

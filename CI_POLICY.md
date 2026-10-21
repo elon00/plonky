@@ -10,7 +10,7 @@ Every shared checkout runs the same mandatory workflow on pull requests and push
 | credentials | Checksum-pinned scanner, regression checks, complete available history including merge diffs, commit/tag messages and staged changes |
 | container | Build the real image and test authentication, execution and shutdown |
 | web | Build Rust/WASM, then exercise the browser at desktop/mobile sizes |
-| codeql | Python and JavaScript/TypeScript analysis; high/critical security findings or error-level results block release |
+| codeql | Python, JavaScript/TypeScript, Rust and GitHub Actions analysis; high/critical security findings or error-level results block release |
 
 Actions are pinned to immutable commits and credentials are not persisted by checkout. Most jobs have read-only repository access; CodeQL upload and the Pages deployment receive only their required additional permissions.
 
@@ -20,8 +20,10 @@ Only the canonical Plonky Pages site is published, after this gate succeeds on m
 
 Branch protection must separately require this gate on main before describing merges as enforced. Workflow gates do not configure repository branch protection themselves. The portfolio verifier must check every owned project's current revision; a successful canonical run does not prove all other repository runs passed.
 
-The scanner policy records only exact reviewed non-secret fixtures and rejects changed content; repository-provided ignores do not suppress findings. It does not prove the absence of all confidential information on GitHub. CodeQL language coverage is limited to the configured languages; Rust uses compiler/Clippy/tests, and Solidity uses contract/fuzz tests. Independent security review, customer acceptance, licenses, real deployment/rollback evidence and monitoring remain separate requirements. No CI success awards 10/10 market readiness.
+The scanner policy records only exact reviewed non-secret fixtures and rejects changed content; repository-provided ignores do not suppress findings. It does not prove the absence of all confidential information on GitHub. CodeQL uses separate categories for all four configured languages so results cannot overwrite one another. Rust also uses compiler/Clippy/tests, and Solidity uses contract/fuzz tests. Independent security review, customer acceptance, licenses, real deployment/rollback evidence and monitoring remain separate requirements. No CI success awards 10/10 market readiness.
 
 The credential guard and its regression tests were imported from master security commit 9900daea33de9c723f7b3d89d09363e90e8bb84b. Reviewed fixture records name their actual source repository; they are exact-content exceptions rather than general path exclusions.
 
 Fleet replacements and backup files use owner-only POSIX access (0600, or 0700 when preserving owner execute). Timestamped backup roots are created with 0700. Windows chmod does not configure NTFS access-control lists; retain an appropriately protected user/workspace directory there.
+
+Rust analysis supports the stable 2021/2024 editions used by the shared workspace. Official language guidance: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/. GitHub Actions analysis also checks the workflow source. Neither substitutes for behavioral tests or contract review.

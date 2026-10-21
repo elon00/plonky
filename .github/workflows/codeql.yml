@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [python, javascript-typescript]
+        language: [python, javascript-typescript, rust, actions]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
@@ -23,6 +23,10 @@ jobs:
     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
       with:
         python-version: '3.12'
+    - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+      if: matrix.language == 'rust'
+      with:
+        toolchain: stable
     - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee
       with:
         languages: ${{ matrix.language }}
