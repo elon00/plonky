@@ -4,6 +4,8 @@ export interface QMoosaClientConfig {
   expectedChainId?: bigint;
   timeoutMs?: number;
 }
+export {readOnlyRpc,probeEvmUpgrade,probeSolanaUpgrade,estimateEvmGas,SOLANA_GENESIS} from "./chain-upgrades.js";
+import {readOnlyRpc,probeEvmUpgrade} from "./chain-upgrades.js";
 const MAX_BOARD=(1n<<64n)-1n;
 const QUANTITY=/^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/;
 
@@ -40,6 +42,10 @@ export class QMoosaClient {
       throw new Error("Timeout must be between 1 and 30000ms");
   }
   simulateConwayStep(board:bigint):bigint {return stepConway(board);}
+  async upgradeStatus(){
+    if(this.#expected===undefined)throw new Error("Expected chain id is required for upgrade checks");
+    return probeEvmUpgrade(readOnlyRpc(this.#url,this.#timeout),this.#expected);
+  }
   async #quantity(method:string,id:number):Promise<bigint>{
     try{
       const response=await fetch(this.#url,{method:"POST",redirect:"error",

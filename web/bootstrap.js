@@ -17,8 +17,11 @@ try {
   }
   if(url.pathname==="/api/pqc")return JSON.parse(pqc());
   if(url.pathname==="/api/rpc"&&method==="POST"){
-   const status=await client.chainStatus();
-   return {status:"connected",chain_id:status.chainId,block_number:status.blockNumber,message:"Live Sepolia read-only RPC succeeded.",scope:"PublicNode shared public endpoint; no transactions sent"};
+   const status=await client.upgradeStatus();
+   const capability=status.upgrade.slotnum==="observed"?"SLOTNUM observed":"SLOTNUM unverified";
+   return {status:"connected",chain_id:status.chainId,block_number:status.blockNumber,upgrade:status.upgrade,
+    gas_estimation:status.dynamicGasEstimation,message:`Live Sepolia gas estimate succeeded; ${capability}. Full Glamsterdam conformance requires separate testing.`,
+    scope:"PublicNode shared public endpoint; no transactions sent"};
   }
   throw new Error("Unknown operation");
  };

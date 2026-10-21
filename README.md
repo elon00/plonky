@@ -1,5 +1,7 @@
 # QMoosa verification workbench
 
+See [blockchain upgrade compatibility](CHAIN_UPGRADES.md) for the current Glamsterdam and Alpenglow integration, commands and verification limits.
+
 A local demo of Conway B3/S23, ML-KEM-768 key establishment, authenticated payload encryption and an optional EVM RPC probe.
 
 **Status: deployable developer workbench; independent review and owner acceptance remain.** This is one shared implementation distributed to multiple repositories. Repository names do not make separate products or separate chain integrations. See [PRODUCTION_GAPS.md](PRODUCTION_GAPS.md).
