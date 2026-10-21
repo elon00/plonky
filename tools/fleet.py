@@ -29,6 +29,7 @@ FILES=[
 ]
 # Old unconfigured MCP claims are replaced by an empty, non-connecting configuration.
 FILES.append("mcp.json")
+FILES.extend(["src/chain-upgrades.ts","sdk-tests/chain-upgrades.test.mjs","tools/chain-upgrades.mjs","CHAIN_UPGRADES.md"])
 FILES.extend(['service.py', 'Dockerfile', '.dockerignore', '.gitattributes', 'deploy/compose.yml', '.env.production.example', 'qmoosa-wasm/Cargo.toml', 'qmoosa-wasm/src/lib.rs', 'web/bootstrap.js', 'tools/build_web.py', 'tools/prepare_release_dependencies.py', 'ci/action-pins.json', 'requirements.txt', 'requirements-browser.txt', 'tests/test_service.py', 'tools/web_check.py', 'qmoosa-core/tests/nist_kat.rs', 'qmoosa-core/tests/fixtures/nist-mlkem768.json', 'tools/dependency_audit.py', 'tools/container_check.py', 'script/DeployLaunchpad.s.sol', 'DEPLOYMENT.md', 'AUDIT_PACKET.md', 'RELEASE_PLAN.md', 'tools/fleet_publish.py', 'tests/test_publish.py'])
 
 def digest(data): return hashlib.sha256(data).hexdigest()

@@ -37,6 +37,7 @@ def main():
     (site/".nojekyll").write_text("")
     shutil.copy2(ROOT/"project.json",site/"project.json")
     (site/"sdk").mkdir(exist_ok=True);shutil.copy2(ROOT/"dist/index.js",site/"sdk/index.js")
+    shutil.copy2(ROOT/"dist/chain-upgrades.js",site/"sdk/chain-upgrades.js")
     target=Path(os.environ.get("CARGO_TARGET_DIR",ROOT/"target"))
     if not target.is_absolute():target=ROOT/target
     run(["wasm-bindgen","--target","web","--out-dir",str(site/"pkg"),str(target/"wasm32-unknown-unknown/release/qmoosa_wasm.wasm")])
