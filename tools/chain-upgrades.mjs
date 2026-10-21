@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {readOnlyRpc,probeEvmUpgrade,probeSolanaUpgrade,SOLANA_GENESIS} from '../dist/chain-upgrades.js';
+import {readOnlyRpc,probeEvmUpgrade,probeSolanaUpgrade,SOLANA_GENESIS,upgradeProbeExitCode} from '../dist/chain-upgrades.js';
 const args=process.argv.slice(2);
 const networks=['sepolia','ethereum-mainnet','solana-devnet','solana-mainnet'];
 if(args.length!==2||args[0]!=='--network'||!networks.includes(args[1])){
@@ -17,6 +17,6 @@ if(args.length!==2||args[0]!=='--network'||!networks.includes(args[1])){
    report=await probeEvmUpgrade(readOnlyRpc(process.env.QMOOSA_RPC_URL??endpoint,15000),network==='sepolia'?11155111n:1n);
   }
   console.log(JSON.stringify({checkedAt:new Date().toISOString(),network,...report},null,2));
-  if(report.upgrade.verification==='not_verified'||['unknown','tower'].includes(report.upgrade.consensus))process.exitCode=1;
+  process.exitCode=upgradeProbeExitCode(report);
  }catch{console.error('Upgrade probe failed; check configuration, provider capability and connectivity. No upgrade support is claimed.');process.exitCode=2;}
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readOnlyRpc,probeEvmUpgrade,estimateEvmGas,probeSolanaUpgrade,SOLANA_GENESIS} from '../dist/chain-upgrades.js';
+import {readOnlyRpc,probeEvmUpgrade,estimateEvmGas,probeSolanaUpgrade,SOLANA_GENESIS,upgradeProbeExitCode} from '../dist/chain-upgrades.js';
 
 const certificate=()=>({block:{slot:504148999,blockId:Array(32).fill(1)},
  signature:{signature:Array(192).fill(2),bitmap:[1]}});
@@ -50,8 +50,11 @@ test('wrong EVM identity stops before gas estimation or simulation',async()=>{
  });
 });
 test('actual transaction estimates use current RPC pricing and an explicit gas ceiling',async()=>{
- const tx={to:'0x'+'12'.repeat(20),value:'0x0',data:'0x1234'};
+ const tx={to:'0x'+'12'.repeat(20),from:'0x'+'34'.repeat(20),value:'0x0',data:'0x1234'};
  await server(evm,async(rpc,calls)=>{
+  const {from,...withoutSender}=tx;
+  await assert.rejects(estimateEvmGas(rpc,withoutSender,11155111n,60000n),/configuration/);
+  assert.equal(calls.length,0);
   assert.equal(await estimateEvmGas(rpc,tx,11155111n,60000n),'50000');
   assert.deepEqual(calls.at(-1).params,[tx,'latest']);
   await assert.rejects(estimateEvmGas(rpc,tx,11155111n,40000n),/ceiling/);
@@ -68,11 +71,12 @@ test('Solana switches commitment only after receiving a structured genesis certi
 test('Tower, old RPC, malformed certificate and provider errors remain distinct',async()=>{
  for(const [reply,capability] of [
   [{result:null},'not_active'],[{error:{code:-32601,message:'provider-secret'}},'method_unavailable'],
-  [{result:{}},'invalid_certificate'],[{result:{...certificate(),signature:{signature:[],bitmap:[]}}},'invalid_certificate'],
+  [{result:{}},'invalid_certificate'],[{result:{...certificate(),signature:{signature:Array(192).fill(2),bitmap:Array(513).fill(1)}}},'invalid_certificate'],[{result:{...certificate(),signature:{signature:[],bitmap:[]}}},'invalid_certificate'],
   [{error:{code:-32000,message:'provider-secret'}},'rpc_error'],
  ])await server(req=>req.method==='getGenesisHash'?{result:SOLANA_GENESIS.devnet}:reply,async rpc=>{
   const report=await probeSolanaUpgrade(rpc,SOLANA_GENESIS.devnet);
   assert.equal(report.upgrade.capability,capability);assert.equal(report.upgrade.commitment,'confirmed');
+  assert.equal(upgradeProbeExitCode(report),['rpc_error','invalid_certificate'].includes(capability)?2:1);
   assert.notEqual(report.upgrade.consensus,'alpenglow');assert.ok(!JSON.stringify(report).includes('provider-secret'));
  });
 });

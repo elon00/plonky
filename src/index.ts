@@ -82,3 +82,11 @@ export class QMoosaClient {
     return {chainId:chain.toString(),blockNumber:block.toString()};
   }
 }
+
+/** Preserve the existing numeric HTTP/UI response contract; reject precision loss. */
+export function safeQuantityNumber(value:string):number{
+  if(!/^(?:0|[1-9][0-9]*)$/.test(value))throw new RangeError("Invalid decimal RPC quantity");
+  const result=BigInt(value);
+  if(result>BigInt(Number.MAX_SAFE_INTEGER))throw new RangeError("RPC quantity exceeds the numeric API range");
+  return Number(result);
+}

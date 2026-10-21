@@ -3,7 +3,7 @@ import {createServer} from "node:http";
 import {test} from "node:test";
 import {spawnSync} from "node:child_process";
 import path from "node:path";
-import {QMoosaClient,stepConway} from "../dist/index.js";
+import {QMoosaClient,stepConway,safeQuantityNumber} from "../dist/index.js";
 
 function board(cells){return cells.reduce((b,[x,y])=>b|(1n<<BigInt(8*y+x)),0n);}
 test("Conway block, oscillator and finite edges",()=>{
@@ -60,4 +60,12 @@ test("configuration rejects unsafe schemes and invalid settings",()=>{
   assert.throws(()=>new QMoosaClient({quickNodeRpcUrl:url}));
  assert.throws(()=>new QMoosaClient({quickNodeRpcUrl:"https://example.com",timeoutMs:0}));
  assert.throws(()=>new QMoosaClient({quickNodeRpcUrl:"https://example.com",expectedChainId:0n}));
+});
+
+test("HTTP/UI quantities use safe integers and reject loss of precision",()=>{
+ assert.equal(safeQuantityNumber("11155111"),11155111);
+ assert.equal(safeQuantityNumber("11962704"),11962704);
+ assert.equal(safeQuantityNumber("9007199254740991"),Number.MAX_SAFE_INTEGER);
+ for(const value of ["9007199254740992","-1","01","0x1"])
+  assert.throws(()=>safeQuantityNumber(value),RangeError);
 });

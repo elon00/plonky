@@ -1,5 +1,5 @@
 import init,{life,pqc} from "./pkg/qmoosa_wasm.js";
-import {QMoosaClient} from "./sdk/index.js";
+import {QMoosaClient,safeQuantityNumber} from "./sdk/index.js";
 const endpoint="https://ethereum-sepolia-rpc.publicnode.com";
 try {
  await init();
@@ -19,7 +19,7 @@ try {
   if(url.pathname==="/api/rpc"&&method==="POST"){
    const status=await client.upgradeStatus();
    const capability=status.upgrade.slotnum==="observed"?"SLOTNUM observed":"SLOTNUM unverified";
-   return {status:"connected",chain_id:status.chainId,block_number:status.blockNumber,upgrade:status.upgrade,
+   return {status:"connected",chain_id:safeQuantityNumber(status.chainId),block_number:safeQuantityNumber(status.blockNumber),upgrade:status.upgrade,
     gas_estimation:status.dynamicGasEstimation,message:`Live Sepolia gas estimate succeeded; ${capability}. Full Glamsterdam conformance requires separate testing.`,
     scope:"PublicNode shared public endpoint; no transactions sent"};
   }

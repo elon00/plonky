@@ -63,11 +63,11 @@ export function readOnlyRpc(endpoint:string,timeoutMs=5000,fetchImpl:typeof fetc
   };
 }
 
-export interface EvmTransaction {to:string;from?:string;value?:string;data?:string;}
+export interface EvmTransaction {to:string;from:string;value?:string;data?:string;}
 /** Estimate this transaction under the node's current rules; enforce an operator supplied ceiling. */
 export async function estimateEvmGas(rpc:Rpc,transaction:EvmTransaction,expectedChainId:bigint,maxGas:bigint):Promise<string>{
   if(expectedChainId<=0n||maxGas<=0n||!ADDRESS.test(transaction.to)||
-    (transaction.from!==undefined&&!ADDRESS.test(transaction.from))||
+    !ADDRESS.test(transaction.from)||
     (transaction.value!==undefined&&!QUANTITY.test(transaction.value))||
     (transaction.data!==undefined&&!/^0x(?:[a-fA-F0-9]{2})*$/.test(transaction.data))||
     Object.keys(transaction).some(key=>!["to","from","value","data"].includes(key)))throw new Error("Invalid gas estimation configuration");
@@ -125,7 +125,7 @@ export async function probeSolanaUpgrade(rpc:Rpc,expectedGenesisHash:string){
       const cert=object(value),block=object(cert["block"]),signature=object(cert["signature"]);
       const slot=block["slot"];
       if(typeof slot==="number"&&Number.isSafeInteger(slot)&&slot>=0&&bytes(block["blockId"],32)&&
-        bytes(signature["signature"],192)&&bytes(signature["bitmap"])&&
+        bytes(signature["signature"],192)&&bytes(signature["bitmap"])&&(signature["bitmap"] as number[]).length<=512&&
         (signature["bitmap"] as number[]).some(x=>x!==0)){
         consensus="alpenglow";capability="reported_active";genesisSlot=slot;
       }
@@ -138,4 +138,12 @@ export async function probeSolanaUpgrade(rpc:Rpc,expectedGenesisHash:string){
       commitment:consensus==="alpenglow"?"finalized" as const:"confirmed" as const,
       scope:"provider-reported genesis certificate; BLS signature not independently verified"},
     scope:"single configured RPC provider; no signing or transactions"};
+}
+
+/** CLI policy: unavailable features differ from failed or malformed required observations. */
+export function upgradeProbeExitCode(report:{upgrade:{verification?:string;capability?:string}}):0|1|2{
+  const {verification,capability}=report.upgrade;
+  if(capability==="rpc_error"||capability==="invalid_certificate")return 2;
+  if(capability==="reported_active"||verification==="single_capability_observed")return 0;
+  return 1;
 }
