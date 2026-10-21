@@ -32,6 +32,10 @@ FILES.append("mcp.json")
 FILES.extend(["src/chain-upgrades.ts","sdk-tests/chain-upgrades.test.mjs","tools/chain-upgrades.mjs","CHAIN_UPGRADES.md"])
 FILES.extend(['service.py', 'Dockerfile', '.dockerignore', '.gitattributes', 'deploy/compose.yml', '.env.production.example', 'qmoosa-wasm/Cargo.toml', 'qmoosa-wasm/src/lib.rs', 'web/bootstrap.js', 'tools/build_web.py', 'tools/prepare_release_dependencies.py', 'ci/action-pins.json', 'requirements.txt', 'requirements-browser.txt', 'tests/test_service.py', 'tools/web_check.py', 'qmoosa-core/tests/nist_kat.rs', 'qmoosa-core/tests/fixtures/nist-mlkem768.json', 'tools/dependency_audit.py', 'tools/container_check.py', 'script/DeployLaunchpad.s.sol', 'DEPLOYMENT.md', 'AUDIT_PACKET.md', 'RELEASE_PLAN.md', 'tools/fleet_publish.py', 'tests/test_publish.py'])
 
+FILES.extend(['tools/release_gate.py', 'tests/test_release_gate.py', 'tools/codeql_gate.py', 'tests/test_codeql_gate.py', 'LOCAL_DEVELOPMENT.md', 'CI_POLICY.md'])
+
+FILES.extend(['tools/security_guard.py', 'tools/security-policy.toml', 'tools/reviewed-test-fixtures.json', 'ci/test_security_guard.py'])
+
 def digest(data): return hashlib.sha256(data).hexdigest()
 def write_json(path,data):
     path.parent.mkdir(parents=True,exist_ok=True)

@@ -2,6 +2,8 @@
 
 See [blockchain upgrade compatibility](CHAIN_UPGRADES.md) for the current Glamsterdam and Alpenglow integration, commands and verification limits.
 
+## About
+
 A local demo of Conway B3/S23, ML-KEM-768 key establishment, authenticated payload encryption and an optional EVM RPC probe.
 
 **Status: deployable developer workbench; independent review and owner acceptance remain.** This is one shared implementation distributed to multiple repositories. Repository names do not make separate products or separate chain integrations. See [PRODUCTION_GAPS.md](PRODUCTION_GAPS.md).
@@ -11,6 +13,8 @@ A local demo of Conway B3/S23, ML-KEM-768 key establishment, authenticated paylo
 The flagship deploys to https://elon00.github.io/plonky/ after its CI gates pass. The same Rust core runs in the browser through WebAssembly; no backend account is required. The explicit RPC probe uses public Sepolia infrastructure. See DEPLOYMENT.md for build, hosting, protected-server and rollback instructions.
 
 ## Start locally
+
+[Open localhost:8765](http://localhost:8765/) after starting the server. Follow the [step-by-step local guide](LOCAL_DEVELOPMENT.md) for setup, another port, health checks and shutdown.
 
 Install a current stable Rust toolchain with Cargo and Python 3.11 or newer.
 
@@ -87,6 +91,8 @@ For rollback, use the exact timestamped backup path printed by apply:
 Rollback refuses to overwrite newer edits. Preserve the backup directory.
 
 ## CI and references
+
+The [required CI policy](CI_POLICY.md) rejects failed, skipped or missing gates before deployment. Every owned checkout still needs its own passing hosted run; no portfolio completion is implied.
 
 CI runs core checks on Ubuntu and Windows, plus Forge contract tests. CodeQL has a separate initialized Python/JavaScript workflow. Hosted workflows must actually run before claiming hosted CI success. Static passing badges and invented scores have been removed.
 

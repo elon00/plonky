@@ -1,0 +1,17 @@
+title = "QMoosa publication audit: embedded provider rules plus credential assignments"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "qmoosa-credential-assignment"
+description = "Potential application secret requiring review before publication"
+regex = '''(?i)(?:api[_-]?key|client[_-]?secret|access[_-]?token|auth[_-]?token|private[_-]?key|secret[_-]?key|database[_-]?password|wallet[_-]?seed|mnemonic|seed[_-]?phrase)[ \t"']{0,4}[:=][ \t"']{0,4}([a-zA-Z0-9_+./=:-]{12,})'''
+secretGroup = 1
+entropy = 3.0
+
+[[rules]]
+id = "qmoosa-credential-url"
+description = "A URL containing embedded user/password credentials"
+regex = '''(?i)(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|https?)://[^\s/:@]{1,80}:([^\s/@]{4,})@'''
+secretGroup = 1

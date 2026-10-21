@@ -1,0 +1,305 @@
+{
+  "entries": [
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "sdk-tests/client.test.mjs",
+      "line": 59,
+      "blob_sha256": "ec859e749c5b88949e3d79ddad197823396f60ff737b95dd14cb37b3189faa1a",
+      "reason": "Reviewed negative test rejects fixed dummy basic-auth URL at reserved example.com; source matches verified public release 7d65b4a5a98b2095ab638b780e445e6917ba05a1."
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "tests/test_app.py",
+      "line": 72,
+      "blob_sha256": "ead617be35af785ccaeb5304b13396111753b9acc464cdb5d661aa94d7fa1b2e",
+      "reason": "Reviewed negative test rejects fixed dummy basic-auth URL at reserved example.com; source matches verified public release 7d65b4a5a98b2095ab638b780e445e6917ba05a1."
+    },
+    {
+      "rule": "generic-api-key",
+      "path": ".env.production.example",
+      "line": 5,
+      "blob_sha256": "e69aa4ee02c7f161b81427f32ee0b3610a710e7f18fc2514eb5c15acba426711",
+      "reason": "Reviewed blank access-token example; upstream generic rule captures the next non-secret rate-limit setting across a newline. Exact verified public source hash required."
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/classical/ed25519.ts",
+      "line": 13,
+      "blob_sha256": "ba28cada21bf58169f7ee9729c83c5639ffd986f730962cb3ca1a30a857361e2",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/classical/x25519.ts",
+      "line": 13,
+      "blob_sha256": "05071db132270141ca25c22c6fd67e15e1a52b5501f0fbaeb929910b10267ac0",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/hybrid/hybrid-kex.ts",
+      "line": 36,
+      "blob_sha256": "5b26b8482e52b3a067066a3b5e0f8af50950b3f55212e1ab7b43e026605e8a48",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/hybrid/hybrid-kex.ts",
+      "line": 38,
+      "blob_sha256": "5b26b8482e52b3a067066a3b5e0f8af50950b3f55212e1ab7b43e026605e8a48",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "quantum/02_PQC_SECURITY/hybrid-envelope.ts",
+      "line": 70,
+      "blob_sha256": "195f512b3cc5659d63b9c80bfa5feaafd0bd2772b5493b881a8491c9692ee9b2",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "PQC_EVER_READY_TOOLKIT/modules/hybrid-envelope.ts",
+      "line": 61,
+      "blob_sha256": "9431fdff79ce57fe7b07f170f85eb0ab68d5fe29e35642cb7aa50e6c9e7117b8",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/hybrid/hybrid-envelope.ts",
+      "line": 57,
+      "blob_sha256": "11adc31d96f7bab1fd532c2e78f5dc783a675ab44baef692aea6172f2ab863e9",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "src/crypto/hybrid/hybrid-envelope.ts",
+      "line": 59,
+      "blob_sha256": "11adc31d96f7bab1fd532c2e78f5dc783a675ab44baef692aea6172f2ab863e9",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "PQC_EVER_READY_TOOLKIT/modules/hybrid-key-exchange.ts",
+      "line": 31,
+      "blob_sha256": "075cf5cc9c2e6d4693e84d4650a1c70a3327f6e7418090a869ab1b7f4db05130",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "PQC_EVER_READY_TOOLKIT/modules/hybrid-key-exchange.ts",
+      "line": 44,
+      "blob_sha256": "075cf5cc9c2e6d4693e84d4650a1c70a3327f6e7418090a869ab1b7f4db05130",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "scripts/create-metadata.ts",
+      "line": 56,
+      "blob_sha256": "01a875b348b90505d47454f71dd4d88b251fc1752796358b65bbddb2c66a33b5",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "jarsol-deployment.json",
+      "line": 27,
+      "blob_sha256": "c35fbebb769304875881217fb918199d1d0e458b094b7653d85906fc4a197236",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "scripts/deploy-mainnet.ts",
+      "line": 24,
+      "blob_sha256": "65efdf1d854c2ded1e99406a219247e5b4e805df349ff7919904d8c2e829170e",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "deployments/testnet.json",
+      "line": 9,
+      "blob_sha256": "ce86f45a4a0b7c543028971c851c86bfd1b312b62b981a2a30b8f2b17aee0c87",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "src/utils/solana.ts",
+      "line": 54,
+      "blob_sha256": "0d6fb3fdd2ee467a89ac92420c603b4cd5aa2e8e7b1abf3cea4218fec8d19425",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "quantum/03_PQ_COMMUNICATION/hybrid-key-exchange.ts",
+      "line": 43,
+      "blob_sha256": "da51eb1016bb1271cb4d428ac28e55bf118d1ddcefe90463155f1e54e021e0b6",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "quantum/03_PQ_COMMUNICATION/hybrid-key-exchange.ts",
+      "line": 68,
+      "blob_sha256": "da51eb1016bb1271cb4d428ac28e55bf118d1ddcefe90463155f1e54e021e0b6",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "quantum/03_PQ_COMMUNICATION/hybrid-key-exchange.ts",
+      "line": 108,
+      "blob_sha256": "da51eb1016bb1271cb4d428ac28e55bf118d1ddcefe90463155f1e54e021e0b6",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "quantum/03_PQ_COMMUNICATION/hybrid-key-exchange.ts",
+      "line": 134,
+      "blob_sha256": "da51eb1016bb1271cb4d428ac28e55bf118d1ddcefe90463155f1e54e021e0b6",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "jarsol-deployment.json",
+      "line": 18,
+      "blob_sha256": "68f5ef2f62cc29e970dfe0c1fd281c8672d816b55d76c9f13f28b4c1b8b64b29",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "jarsol-deployment.json",
+      "line": 27,
+      "blob_sha256": "68f5ef2f62cc29e970dfe0c1fd281c8672d816b55d76c9f13f28b4c1b8b64b29",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "src/utils/solana.ts",
+      "line": 43,
+      "blob_sha256": "edfaed595e7826903e6d3eea771db7a402f592374b08abef64592c75c192fab1",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "src/utils/solana.ts",
+      "line": 54,
+      "blob_sha256": "edfaed595e7826903e6d3eea771db7a402f592374b08abef64592c75c192fab1",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "deployments/testnet.json",
+      "line": 8,
+      "blob_sha256": "60ad87ee7823f0899331b37f7eb0b4897abe74ce1e71126447dc42b8fe851c45",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "generic-api-key",
+      "path": "jarsol-deployment.json",
+      "line": 6,
+      "blob_sha256": "9424ad26a9d32930a799e1807923e98f7e140254799c12d45f36592f16d96c25",
+      "reason": "Reviewed public Solana tokenAccountAddress field, not signing key or service credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/actions/code_helper.py",
+      "line": 460,
+      "blob_sha256": "963204279c7f6efab7a0c746a033bf3b2cef01ededc5b77acbedc140d4042fab",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": ".env.example",
+      "line": 2,
+      "blob_sha256": "682f91c5e928c84d91c8bd306c75f65963831d0ba34ddd42ef7576f05097a4d0",
+      "reason": "Reviewed documented example placeholder"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/actions/screen_processor.py",
+      "line": 184,
+      "blob_sha256": "6b19ccb96bc724b87621da5188cfa5a4c7b22d243306ad5d28f622c977121bb6",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/actions/web_search.py",
+      "line": 24,
+      "blob_sha256": "e783a9870cccf021038bb7963c650caa07a9a54f7cb8e9ffb4b24e95a0e89ef2",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/or_client.py",
+      "line": 85,
+      "blob_sha256": "78c76ccb03c7916a6400b14195ccca37b8f0b05c817b04ebbcec40716ae26bb3",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/engine.py",
+      "line": 530,
+      "blob_sha256": "e11d70a21bd4c58b52fe3bbcdb1abe4128f5e713fa206ee8120052e44e37216c",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/main.py",
+      "line": 111,
+      "blob_sha256": "4c05b26809c90dfb466028a0c847bb7415251b9d719dae91af8e9dcf13eaa77b",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "jarvis_core/main.py",
+      "line": 865,
+      "blob_sha256": "4c05b26809c90dfb466028a0c847bb7415251b9d719dae91af8e9dcf13eaa77b",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-assignment",
+      "path": "server.ts",
+      "line": 25,
+      "blob_sha256": "d7d01e966ffe7bf66fadd353718aa0a3968798fff7370d7ef90c4cae92e43378",
+      "reason": "Reviewed runtime variable/key-generation/provider-key lookup, not a literal credential"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "sdk-tests/chain-upgrades.test.mjs",
+      "line": 100,
+      "blob_sha256": "c32c811523da75f1f1eb86696e56220e128df0f67d6e054b3cb8f0c9b4031330",
+      "reason": "Negative URL-validation test with public dummy credentials on reserved example.com"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "tests/chain-upgrades.test.ts",
+      "line": 100,
+      "blob_sha256": "640d4b0e9e51d02b447e38045b0134164e0444d0f89f42a0358a7d91dcd10f50",
+      "reason": "Negative URL-validation test with public dummy credentials on reserved example.com"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "sdk-tests/chain-upgrades.test.mjs",
+      "line": 104,
+      "blob_sha256": "8f08390353914ccbc4290166ac61ebb0c5617205c5b0becf554a158fcd4f3ed4",
+      "reason": "Reviewed negative URL-validation fixture on reserved example.com; public dummy credentials only"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "sdk-tests/client.test.mjs",
+      "line": 59,
+      "blob_sha256": "630528bca3403962668add209641f3d75e66b4ea65bc0b3f7387af6559383dce",
+      "reason": "Reviewed negative URL-validation fixture on reserved example.com; public dummy credentials only"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "tests/chain-upgrades.test.ts",
+      "line": 104,
+      "blob_sha256": "8a0862c07056541ac8127ee9c8703a99bc618d353ce2c93f0fd75aed1374a817",
+      "reason": "Reviewed negative URL-validation fixture on reserved example.com; public dummy credentials only"
+    },
+    {
+      "rule": "qmoosa-credential-url",
+      "path": "tests/backend-boundaries.test.ts",
+      "line": 128,
+      "blob_sha256": "6de5c8a08303cfe1089cda72dda083cfb1b07d6e6f31781bf774c0de30f42580",
+      "reason": "Reviewed non-secret negative fixture in elon00/jarsol-web4-automaton PR 11, commit bbecbf46c2dec8d97709d0d02ba052449cd3c002 (cross-repository guard policy). Fixed credential-canary on reserved example.invalid; rejected before connection. Exact whole-file hash and line only."
+    }
+  ]
+}

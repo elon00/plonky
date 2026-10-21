@@ -68,11 +68,22 @@ class PublishSafety(unittest.TestCase):
             proof={"status":"passed","commit":commit,"run_id":1,"source_manifest":{"managed.txt":hashlib.sha256(b"release").hexdigest()}}
             path=home/"proof.json";path.write_text(json.dumps(proof),encoding="utf-8")
             run={"head_sha":commit,"status":"completed","conclusion":"success","head_branch":"main","path":".github/workflows/ci-cd-pipeline.yml","repository":{"full_name":"elon00/plonky"}}
+            jobs={"total_count":len(publish.REQUIRED_CI_JOBS),"jobs":[
+                {"name":name,"status":"completed","conclusion":"success"}
+                for name in sorted(publish.REQUIRED_CI_JOBS)]}
             real=publish.subprocess.check_output
             def output(args,**kwargs):
-                return json.dumps(run) if args[0]=="gh" else real(args,**kwargs)
+                if args[0]=="gh":return json.dumps(jobs if "/jobs?" in args[-1] else run)
+                return real(args,**kwargs)
             with patch.object(publish,"SOURCE",repo),patch.object(publish.fleet,"FILES",["managed.txt"]),patch.object(publish.subprocess,"check_output",side_effect=output):
                 self.assertEqual(publish.check_proof(path)["commit"],commit)
+                for conclusion in ("skipped","cancelled","failure",None):
+                    jobs["jobs"][0]["conclusion"]=conclusion
+                    with self.assertRaisesRegex(ValueError,"mandatory jobs"):publish.check_proof(path)
+                jobs["jobs"][0]["conclusion"]="success"
+                missing=jobs["jobs"].pop()
+                with self.assertRaisesRegex(ValueError,"mandatory job evidence"):publish.check_proof(path)
+                jobs["jobs"].append(missing)
                 for key,value in (("path",".github/workflows/codeql.yml"),("head_branch","unreviewed")):
                     original=run[key];run[key]=value
                     with self.assertRaisesRegex(ValueError,"canonical main"):publish.check_proof(path)
