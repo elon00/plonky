@@ -13,6 +13,12 @@ import time
 import fleet
 
 SOURCE=Path(__file__).resolve().parents[1]
+
+REQUIRED_CI_JOBS=frozenset((
+    "core (ubuntu-latest)", "core (windows-latest)", "contracts", "security",
+    "credentials", "container", "web", "codeql / analyze (python)", "codeql / analyze (javascript-typescript)",
+    "codeql / analyze (rust)", "codeql / analyze (actions)", "Required release gate", "deploy",
+))
 def git(repo,*args,check=True):
     result=subprocess.run(["git","-C",str(repo),*args],capture_output=True,text=True,timeout=120)
     if check and result.returncode:raise RuntimeError(result.stderr.strip()[:1200] or "Git command failed")
@@ -67,11 +73,18 @@ def check_proof(path,canonical=None):
         raise ValueError("Canonical source HEAD does not match the CI proof")
     if git(canonical,"status","--porcelain","--",*fleet.FILES).stdout.strip():
         raise ValueError("Canonical managed source has uncommitted changes")
-    run=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}"],text=True))
+    run=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}"],text=True,timeout=90))
     if run.get("head_sha")!=proof["commit"] or run.get("conclusion")!="success" or run.get("status")!="completed":
         raise ValueError("Canonical hosted CI has not passed for this commit")
     if run.get("head_branch")!="main" or run.get("path")!=".github/workflows/ci-cd-pipeline.yml" or run.get("repository",{}).get("full_name")!="elon00/plonky":
         raise ValueError("Expected the canonical main Verified core workflow")
+    jobs=json.loads(subprocess.check_output(["gh","api",f"repos/elon00/plonky/actions/runs/{int(proof['run_id'])}/jobs?per_page=100&filter=latest"],text=True,timeout=90))
+    rows=jobs.get("jobs")
+    if not isinstance(rows,list) or jobs.get("total_count")!=len(rows) or len(rows)!=len(REQUIRED_CI_JOBS):
+        raise ValueError("Canonical mandatory job evidence is incomplete")
+    if {row.get("name") for row in rows}!=REQUIRED_CI_JOBS or any(
+            row.get("status")!="completed" or row.get("conclusion")!="success" for row in rows):
+        raise ValueError("Canonical mandatory jobs did not all pass; skipped or missing checks cannot publish")
     if set(proof["source_manifest"])!=set(fleet.FILES):raise ValueError("Proof does not cover the managed release")
     for relative,expected in proof["source_manifest"].items():
         committed=subprocess.check_output(["git","-C",str(canonical),"show",proof["commit"]+":"+relative])

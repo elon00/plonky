@@ -19,3 +19,5 @@ site/
 broadcast/
 .env.production
 !.env.production.example
+
+.local/

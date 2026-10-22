@@ -14,8 +14,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   core:
-    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
-      || vars.QMOOSA_ENABLE_CI == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
@@ -47,8 +45,6 @@ jobs:
         - ubuntu-latest
         - windows-latest
   contracts:
-    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
-      || vars.QMOOSA_ENABLE_CI == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -65,8 +61,6 @@ jobs:
     - run: npm ci --ignore-scripts
     - run: forge test -vv
   security:
-    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
-      || vars.QMOOSA_ENABLE_CI == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -83,8 +77,6 @@ jobs:
         path: reports/dependency-audit.json
       if: always()
   container:
-    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
-      || vars.QMOOSA_ENABLE_CI == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -97,8 +89,6 @@ jobs:
     - run: docker build -t qmoosa:ci .
     - run: python tools/container_check.py --image qmoosa:ci
   web:
-    if: github.repository == 'elon00/plonky' || github.event_name == 'workflow_dispatch'
-      || vars.QMOOSA_ENABLE_CI == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -139,14 +129,70 @@ jobs:
     permissions:
       contents: read
       pages: read
+  credentials:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Check out immutable scanner and policy outside the target repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        repository: elon00/qmoosa-1000
+        ref: 9900daea33de9c723f7b3d89d09363e90e8bb84b
+        path: trusted-security
+        persist-credentials: false
+    - name: Check out complete target history separately
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        path: project
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - name: Install checksum-pinned credential scanner
+      run: python trusted-security/tools/security_guard.py install
+    - name: Verify trusted scanner protections and exact-fixture boundaries
+      run: python -m unittest discover -s trusted-security/tests -p test_security_guard.py -v
+    - name: Scan target history, merge diffs and commit/tag messages
+      run: python trusted-security/tools/security_guard.py scan --repo project --report reports/credential-scan.json
+    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+      if: always()
+      with:
+        name: credential-scan
+        path: reports/credential-scan.json
+        if-no-files-found: error
+  codeql:
+    uses: ./.github/workflows/codeql.yml
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+  required:
+    name: Required release gate
+    if: ${{ always() }}
+    needs: [core, contracts, security, credentials, container, web, codeql]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - name: Reject failed, skipped, cancelled or missing checks
+      run: python tools/release_gate.py --report reports/release-gate.json
+      env:
+        NEEDS_JSON: ${{ toJSON(needs) }}
+    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+      if: always()
+      with:
+        name: release-gate
+        path: reports/release-gate.json
+        if-no-files-found: error
   deploy:
     if: github.repository == 'elon00/plonky' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs:
-    - core
-    - contracts
-    - security
-    - container
-    - web
+    needs: [required]
     runs-on: ubuntu-latest
     permissions:
       contents: read

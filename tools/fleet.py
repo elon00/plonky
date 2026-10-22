@@ -32,6 +32,9 @@ FILES.append("mcp.json")
 FILES.extend(["src/chain-upgrades.ts","sdk-tests/chain-upgrades.test.mjs","tools/chain-upgrades.mjs","CHAIN_UPGRADES.md"])
 FILES.extend(['service.py', 'Dockerfile', '.dockerignore', '.gitattributes', 'deploy/compose.yml', '.env.production.example', 'qmoosa-wasm/Cargo.toml', 'qmoosa-wasm/src/lib.rs', 'web/bootstrap.js', 'tools/build_web.py', 'tools/prepare_release_dependencies.py', 'ci/action-pins.json', 'requirements.txt', 'requirements-browser.txt', 'tests/test_service.py', 'tools/web_check.py', 'qmoosa-core/tests/nist_kat.rs', 'qmoosa-core/tests/fixtures/nist-mlkem768.json', 'tools/dependency_audit.py', 'tools/container_check.py', 'script/DeployLaunchpad.s.sol', 'DEPLOYMENT.md', 'AUDIT_PACKET.md', 'RELEASE_PLAN.md', 'tools/fleet_publish.py', 'tests/test_publish.py'])
 
+FILES.extend(['tools/release_gate.py', 'tests/test_release_gate.py', 'tools/codeql_gate.py', 'tests/test_codeql_gate.py', 'LOCAL_DEVELOPMENT.md', 'CI_POLICY.md'])
+
+
 def digest(data): return hashlib.sha256(data).hexdigest()
 def write_json(path,data):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -41,7 +44,10 @@ def atomic(path,data):
     with tempfile.NamedTemporaryFile(dir=path.parent,delete=False) as file:
         temporary=Path(file.name);file.write(data)
     try:
-        os.chmod(temporary,stat.S_IMODE(path.stat().st_mode) if path.exists() else 0o644)
+        # Source replacements, journals and backups may contain local user edits.
+        # Keep them private; retain only the owner's executable flag when present.
+        mode=0o700 if path.exists() and path.stat().st_mode & stat.S_IXUSR else 0o600
+        os.chmod(temporary,mode)
         os.replace(temporary,path)
     finally:
         if temporary.exists(): temporary.unlink()
@@ -96,7 +102,7 @@ def apply_one(repo,snapshot,backup):
         target=safe(repo,relative)
         old=target.read_bytes() if target.is_file() else None
         if old is not None:
-            old_path=backup/repo.name/relative;old_path.parent.mkdir(parents=True,exist_ok=True);old_path.write_bytes(old)
+            old_path=backup/repo.name/relative;old_path.parent.mkdir(parents=True,exist_ok=True);atomic(old_path,old)
         before[relative]=digest(old) if old is not None else None
         after[relative]=digest(raw)
     # Journal exists before mutation, allowing recovery after an interrupted write.
@@ -151,7 +157,7 @@ def main():
         if snapshot["instructions"]: parser.error("Review listed AGENTS.md instructions before adapting this updater")
         backup=args.backup_root.resolve()/datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         if backup.is_relative_to(root): parser.error("Use a backup directory outside the repository fleet")
-        backup.mkdir(parents=True,exist_ok=False)
+        backup.mkdir(parents=True,exist_ok=False,mode=0o700)
         snapshots={row["name"]:row for row in snapshot["repositories"]}
         results=[]
         for index,repo in enumerate(repos,1):
