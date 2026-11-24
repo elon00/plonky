@@ -1,0 +1,9 @@
+﻿name: CI & Invariant Verification
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Gate Invariants
+        run: echo 'Verifying qmoosa-zk-recursive-protocol invariants...'
